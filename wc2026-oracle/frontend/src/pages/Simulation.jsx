@@ -3,11 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import useSimulation from '../hooks/useSimulation'
 import LoadingOracle from '../components/LoadingOracle'
-import MatchCard from '../components/MatchCard'
 import { saveSimulation } from '../utils/simStorage'
+import { getTeamLogo } from '../data/teamLogos'
+import { Trophy, Zap, ChevronRight } from 'lucide-react'
 
-// Seeded PRNG: ensures each simulation run produces different results
-// even if the underlying API data (probabilities) stays the same.
 function makePRNG() {
   let seed = Date.now() ^ (Math.random() * 0xFFFFFFFF | 0)
   return function () {
@@ -19,164 +18,317 @@ function makePRNG() {
 }
 
 const ROUNDS = [
-  { id: 'r32', name: 'Round of 32', metric: 'reach_qf' },
-  { id: 'r16', name: 'Round of 16', metric: 'reach_qf' },
-  { id: 'qf', name: 'Quarter-Finals', metric: 'reach_sf' },
-  { id: 'sf', name: 'Semi-Finals', metric: 'reach_final' },
-  { id: 'f', name: 'Grand Final', metric: 'win_tournament' }
+  { id: 'r32', name: 'Round of 32', metric: 'reach_qf', color: 'from-slate-500/20', accent: '#64748b' },
+  { id: 'r16', name: 'Round of 16', metric: 'reach_qf', color: 'from-blue-500/20', accent: '#3b82f6' },
+  { id: 'qf', name: 'Quarter-Finals', metric: 'reach_sf', color: 'from-purple-500/20', accent: '#a855f7' },
+  { id: 'sf', name: 'Semi-Finals', metric: 'reach_final', color: 'from-amber-500/20', accent: '#f59e0b' },
+  { id: 'f', name: 'Grand Final', metric: 'win_tournament', color: 'from-yellow-500/20', accent: '#eab308' },
 ]
+
+// Speed tiers per round (ms per card)
+const ROUND_SPEEDS = { r32: 180, r16: 280, qf: 400, sf: 600, f: 1200 }
+
+function FlagAvatar({ name, size = 'w-10 h-10' }) {
+  const [err, setErr] = useState(false)
+  const url = getTeamLogo(name)
+  const short = name?.substring(0, 3).toUpperCase()
+
+  if (!url || err) {
+    return (
+      <div className={`${size} rounded-full bg-white/10 border border-white/20 flex items-center justify-center flex-shrink-0`}>
+        <span className="text-white font-display font-bold text-[10px]">{short}</span>
+      </div>
+    )
+  }
+  return (
+    <div className={`${size} rounded-full overflow-hidden border border-white/20 shadow-md flex-shrink-0 bg-black`}>
+      <img src={url} alt={name} className="w-full h-full object-cover" onError={() => setErr(true)} />
+    </div>
+  )
+}
+
+function MatchCard({ match, accent }) {
+  const isWinnerA = match.winner === match.teamA
+  const isWinnerB = match.winner === match.teamB
+  const totalProb = (match.probA + match.probB) || 1
+  const pctA = ((match.probA / totalProb) * 100).toFixed(0)
+  const pctB = ((match.probB / totalProb) * 100).toFixed(0)
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+      className="relative p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/8 transition-colors overflow-hidden"
+    >
+      {/* subtle accent glow top edge */}
+      <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${accent}60, transparent)` }} />
+
+      <div className="flex items-center gap-3">
+        {/* Team A */}
+        <div className={`flex items-center gap-2 flex-1 min-w-0 transition-all duration-500 ${!isWinnerA ? 'opacity-35 grayscale' : ''}`}>
+          <FlagAvatar name={match.teamA} size="w-9 h-9" />
+          <span className="font-display text-sm md:text-base text-white truncate leading-tight">{match.teamA}</span>
+          {isWinnerA && (
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3, type: 'spring' }}
+              className="ml-auto flex-shrink-0 w-5 h-5 rounded-full bg-white flex items-center justify-center">
+              <ChevronRight className="w-3 h-3 text-black" />
+            </motion.div>
+          )}
+        </div>
+
+        {/* Centre probs */}
+        <div className="flex flex-col items-center gap-1 flex-shrink-0 w-24">
+          <div className="flex items-center gap-1 w-full">
+            <div className="h-1.5 rounded-full flex-1 overflow-hidden bg-black/40">
+              <motion.div initial={{ width: 0 }} animate={{ width: `${pctA}%` }} transition={{ duration: 0.8, ease: 'easeOut' }}
+                className="h-full rounded-full bg-white/60" />
+            </div>
+            <span className="text-[10px] text-white/60 font-body w-7 text-right">{pctA}%</span>
+          </div>
+          <div className="flex items-center gap-1 w-full flex-row-reverse">
+            <div className="h-1.5 rounded-full flex-1 overflow-hidden bg-black/40">
+              <motion.div initial={{ width: 0 }} animate={{ width: `${pctB}%` }} transition={{ duration: 0.8, ease: 'easeOut' }}
+                className="h-full rounded-full" style={{ background: `${accent}cc` }} />
+            </div>
+            <span className="text-[10px] text-white/60 font-body w-7 text-left">{pctB}%</span>
+          </div>
+        </div>
+
+        {/* Team B */}
+        <div className={`flex items-center gap-2 flex-1 min-w-0 justify-end transition-all duration-500 ${!isWinnerB ? 'opacity-35 grayscale' : ''}`}>
+          {isWinnerB && (
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.3, type: 'spring' }}
+              className="mr-auto flex-shrink-0 w-5 h-5 rounded-full bg-white flex items-center justify-center">
+              <ChevronRight className="w-3 h-3 text-black rotate-180" />
+            </motion.div>
+          )}
+          <span className="font-display text-sm md:text-base text-white truncate text-right leading-tight">{match.teamB}</span>
+          <FlagAvatar name={match.teamB} size="w-9 h-9" />
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+function RoundSection({ round, matches, accent }) {
+  if (!matches?.length) return null
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mb-8"
+    >
+      <div className="flex items-center gap-3 mb-4">
+        <div className="h-px flex-1 bg-white/10" />
+        <span className="font-display text-xs tracking-[0.3em] uppercase px-3 py-1 rounded-full border text-white/70"
+          style={{ borderColor: `${accent}50`, background: `${accent}15` }}>
+          {round.name}
+        </span>
+        <div className="h-px flex-1 bg-white/10" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {matches.map((match, i) => (
+          <MatchCard key={`${match.teamA}-${match.teamB}-${i}`} match={match} accent={accent} />
+        ))}
+      </div>
+    </motion.div>
+  )
+}
 
 export default function Simulation() {
   const { data, loading, error } = useSimulation()
+  const [revealedByRound, setRevealedByRound] = useState({})
   const [currentRoundIdx, setCurrentRoundIdx] = useState(0)
-  const [completedMatches, setCompletedMatches] = useState([])
+  const [matchIdxInRound, setMatchIdxInRound] = useState(0)
   const [isFinishing, setIsFinishing] = useState(false)
   const [skipReveal, setSkipReveal] = useState(false)
   const navigate = useNavigate()
 
   const fullSimulation = useMemo(() => {
     if (!data) return null
-
-    const rand = makePRNG() // Fresh PRNG every render of this memo
-
-    const buildBracket = () => {
-      let currentTeams = Object.keys(data.win_tournament).slice(0, 32)
-      // Fisher-Yates shuffle with seeded random
-      for (let i = currentTeams.length - 1; i > 0; i--) {
-        const j = Math.floor(rand() * (i + 1));
-        [currentTeams[i], currentTeams[j]] = [currentTeams[j], currentTeams[i]]
-      }
-
-      const allRounds = []
-      let roundTeams = [...currentTeams]
-
-      ROUNDS.forEach((round) => {
-        const matches = []
-        const winners = []
-
-        for (let i = 0; i < roundTeams.length; i += 2) {
-          const teamA = roundTeams[i]
-          const teamB = roundTeams[i + 1]
-
-          const probA = data[round.metric][teamA] || 0
-          const probB = data[round.metric][teamB] || 0
-
-          const total = probA + probB || 1
-          const winThreshold = probA / total
-          const winner = rand() < winThreshold ? teamA : teamB
-
-          matches.push({ teamA, teamB, probA, probB, winner, metricLabel: round.name })
-          winners.push(winner)
-        }
-
-        allRounds.push({ ...round, matches })
-        roundTeams = winners
-      })
-
-      return allRounds
+    const rand = makePRNG()
+    let roundTeams = Object.keys(data.win_tournament).slice(0, 32)
+    for (let i = roundTeams.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [roundTeams[i], roundTeams[j]] = [roundTeams[j], roundTeams[i]]
     }
-
-    return buildBracket()
+    const allRounds = []
+    ROUNDS.forEach((round) => {
+      const matches = []
+      const winners = []
+      for (let i = 0; i < roundTeams.length; i += 2) {
+        const teamA = roundTeams[i]
+        const teamB = roundTeams[i + 1]
+        if (!teamA || !teamB) continue
+        const probA = data[round.metric]?.[teamA] || 0
+        const probB = data[round.metric]?.[teamB] || 0
+        const total = probA + probB || 1
+        const winner = rand() < probA / total ? teamA : teamB
+        matches.push({ teamA, teamB, probA, probB, winner, metricLabel: round.name })
+        winners.push(winner)
+      }
+      allRounds.push({ ...round, matches })
+      roundTeams = winners
+    })
+    return allRounds
   }, [data])
 
+  // Skip: reveal all at once
   useEffect(() => {
     if (skipReveal && fullSimulation) {
-      setCompletedMatches(fullSimulation.flatMap(r => r.matches))
+      const byRound = {}
+      fullSimulation.forEach(r => { byRound[r.id] = r.matches })
+      setRevealedByRound(byRound)
       setIsFinishing(true)
       setTimeout(() => {
         const id = saveSimulation(data)
         navigate(`/results?id=${id}`, { replace: true })
-      }, 3000)
+      }, 2500)
     }
   }, [skipReveal, fullSimulation, data, navigate])
 
+  // Auto-reveal round by round, card by card
   useEffect(() => {
-    if (fullSimulation && !skipReveal) {
-      const interval = setInterval(() => {
-        setCompletedMatches(prev => {
-          if (prev.length < fullSimulation.flatMap(r => r.matches).length) {
-            const nextMatch = fullSimulation.flatMap(r => r.matches)[prev.length]
-            return [...prev, nextMatch]
-          }
-          clearInterval(interval)
+    if (!fullSimulation || skipReveal || isFinishing) return
+    const round = fullSimulation[currentRoundIdx]
+    if (!round) return
+
+    const speed = ROUND_SPEEDS[round.id] || 300
+    const timer = setTimeout(() => {
+      if (matchIdxInRound < round.matches.length) {
+        setRevealedByRound(prev => {
+          const existing = prev[round.id] || []
+          return { ...prev, [round.id]: [...existing, round.matches[matchIdxInRound]] }
+        })
+        setMatchIdxInRound(i => i + 1)
+      } else {
+        // Move to next round
+        if (currentRoundIdx + 1 < fullSimulation.length) {
+          setCurrentRoundIdx(i => i + 1)
+          setMatchIdxInRound(0)
+        } else {
+          // All done
           setIsFinishing(true)
           setTimeout(() => {
             const id = saveSimulation(data)
             navigate(`/results?id=${id}`, { replace: true })
-          }, 4000)
-          return prev
-        })
-      }, 1500)
-      return () => clearInterval(interval)
-    }
-  }, [fullSimulation, navigate, data, skipReveal])
+          }, 2500)
+        }
+      }
+    }, speed)
+
+    return () => clearTimeout(timer)
+  }, [fullSimulation, currentRoundIdx, matchIdxInRound, skipReveal, isFinishing, data, navigate])
 
   if (loading) return <LoadingOracle />
-  if (error) return <div className="text-red-500 p-10">Error loading simulation.</div>
+  if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">Error loading simulation.</div>
 
-  const lastMatch = completedMatches[completedMatches.length - 1]
-  const champion = isFinishing ? lastMatch?.winner : null
+  const allRevealed = fullSimulation?.flatMap(r => revealedByRound[r.id] || []) || []
+  const champion = isFinishing ? allRevealed[allRevealed.length - 1]?.winner : null
+
+  // Progress
+  const totalMatches = fullSimulation?.reduce((s, r) => s + r.matches.length, 0) || 63
+  const revealedCount = allRevealed.length
+  const progress = Math.round((revealedCount / totalMatches) * 100)
 
   return (
-    <div className="min-h-screen bg-[#000000] text-white pt-24 p-4 md:p-8 relative overflow-hidden">
-      {/* Dynamic Stadium Background */}
-      <div className="fixed inset-0 stadium-atmosphere opacity-30 grayscale pointer-events-none" />
-      
-      <div className="max-w-4xl mx-auto relative z-10">
-        <header className="flex justify-between items-end mb-12">
+    <div className="min-h-screen bg-[#000000] text-white pt-24 pb-32 relative overflow-hidden">
+      <div className="fixed inset-0 stadium-atmosphere opacity-20 grayscale pointer-events-none" />
+
+      <div className="max-w-5xl mx-auto px-4 relative z-10">
+        {/* Header */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
           <div>
-            <h1 className="text-4xl md:text-6xl font-display text-glow mb-2 italic uppercase">The Prophecy</h1>
-            <p className="font-body text-text-muted tracking-widest uppercase text-xs">Simulating 10,000 parallel realities...</p>
+            <p className="font-body text-white/50 tracking-[0.5em] uppercase text-xs mb-2">WC Oracle · 10,000 Simulations</p>
+            <h1 className="text-5xl md:text-7xl font-display uppercase italic text-white leading-none"
+              style={{ textShadow: '0 0 60px rgba(255,255,255,0.15)' }}>
+              The Prophecy
+            </h1>
           </div>
-          {!isFinishing && (
-            <button 
-              onClick={() => setSkipReveal(true)}
-              className="px-4 py-2 rounded-full border border-white/40 text-xs font-display text-white hover:bg-white/10 transition-colors"
-            >
-              SKIP RITUAL
-            </button>
-          )}
+          <div className="flex items-center gap-4">
+            {!isFinishing && (
+              <button
+                onClick={() => setSkipReveal(true)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/30 text-xs font-display text-white hover:bg-white/10 transition-colors"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                SKIP TO RESULTS
+              </button>
+            )}
+          </div>
         </header>
 
-        {/* Live Feed */}
-        <div className="space-y-6">
-          <AnimatePresence mode="popLayout">
-            {completedMatches.slice().reverse().map((match, i) => (
-              <MatchCard 
-                key={`${match.teamA}-${match.teamB}-${i}`} 
-                match={match} 
-                isVisible={true}
-                isRecent={i === 0}
+        {/* Progress bar */}
+        {!isFinishing && (
+          <div className="mb-10">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-[11px] text-white/40 font-body tracking-widest uppercase">Simulating Bracket</span>
+              <span className="text-[11px] text-white/60 font-body">{revealedCount} / {totalMatches} matches</span>
+            </div>
+            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full bg-gradient-to-r from-white/40 to-white"
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.3 }}
               />
-            ))}
-          </AnimatePresence>
+            </div>
+            {fullSimulation && currentRoundIdx < fullSimulation.length && (
+              <p className="text-[11px] text-white/40 font-body mt-2">
+                Now revealing: <span className="text-white/70">{ROUNDS[currentRoundIdx]?.name}</span>
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Rounds (newest first, collapsed older ones) */}
+        <div className="space-y-2">
+          {fullSimulation && [...ROUNDS].map((round, idx) => {
+            const matches = revealedByRound[round.id]
+            if (!matches?.length) return null
+            return (
+              <RoundSection
+                key={round.id}
+                round={round}
+                matches={matches}
+                accent={round.accent}
+              />
+            )
+          })}
         </div>
       </div>
 
-      {/* Finale Takeover */}
+      {/* Champion Overlay */}
       <AnimatePresence>
         {isFinishing && champion && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-50 bg-[#000000]/90 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center"
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-2xl flex flex-col items-center justify-center p-6 text-center"
           >
             <motion.div
-              initial={{ scale: 0.5, y: 50, opacity: 0 }}
+              initial={{ scale: 0.6, y: 60, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
-              transition={{ type: "spring", damping: 15 }}
+              transition={{ type: 'spring', damping: 14, stiffness: 80 }}
+              className="flex flex-col items-center"
             >
-              <div className="text-white font-body tracking-[0.5em] mb-4 uppercase">New World Order</div>
-              <h2 className="text-6xl md:text-9xl font-display text-white text-glow mb-8 italic uppercase">{champion}</h2>
-              <div className="w-24 h-24 mx-auto mb-12 relative">
-                <div className="absolute inset-0 bg-white rounded-full opacity-20 animate-ping" />
-                <div className="relative z-10 w-full h-full bg-white rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(255,255,255,0.4)]">
-                   <svg viewBox="0 0 24 24" className="w-12 h-12 text-[#000000]" fill="currentColor">
-                     <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v3c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0 0 11 15.9V19H7v2h10v-2h-4v-3.1a5.01 5.01 0 0 0 3.61-1.96C19.08 11.63 21 9.55 21 7V5c0-1.1-.9-2-2-2zM5 7h2v3c0 1.25-.79 2.32-1.9 2.73C4.44 11.97 4 11.04 4 10V7c0-.55.45-1 1-1zm14 3c0 1.04-.44 1.97-1.1 2.73-1.11-.41-1.9-1.48-1.9-2.73V7h2c.55 0 1 .45 1 1v2z"/>
-                   </svg>
-                </div>
-              </div>
-              <p className="text-text-muted font-body animate-pulse">Finalizing tournament data...</p>
+              <motion.div
+                animate={{ rotate: [0, 180, 360] }}
+                transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
+                className="mb-8 p-5 rounded-3xl bg-white/10 border border-white/20 backdrop-blur-md"
+              >
+                <Trophy className="w-14 h-14 text-yellow-400" />
+              </motion.div>
+              <p className="font-body text-white/60 tracking-[0.6em] uppercase text-sm mb-4 flex items-center gap-4">
+                <span className="w-12 h-px bg-white/20" />New World Order<span className="w-12 h-px bg-white/20" />
+              </p>
+              <h2 className="font-display text-[clamp(4rem,16vw,11rem)] leading-none text-white italic uppercase"
+                style={{ textShadow: '0 0 80px rgba(255,255,255,0.2)' }}>
+                {champion}
+              </h2>
+              <p className="text-white/40 font-body text-sm mt-8 animate-pulse tracking-widest">
+                Loading full results...
+              </p>
             </motion.div>
           </motion.div>
         )}

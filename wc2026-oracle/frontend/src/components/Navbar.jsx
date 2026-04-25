@@ -46,7 +46,13 @@ export default function Navbar() {
 
           {/* Logo */}
           <motion.button
-            onClick={() => navigate('/')}
+            onClick={() => {
+              if (location.pathname === '/') {
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              } else {
+                navigate('/')
+              }
+            }}
             className="flex items-center gap-3 group"
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
