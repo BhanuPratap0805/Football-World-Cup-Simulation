@@ -37,7 +37,7 @@ app = FastAPI(
 import os
 cors_origins = os.getenv(
     "CORS_ORIGINS",
-    "http://localhost:5173,http://localhost:3000,https://wc2026-oracle.vercel.app,https://football-world-cup-simulation.vercel.app"
+    "http://localhost:5173,http://localhost:3000,https://wc2026-oracle.vercel.app,https://football-world-cup-simulation.vercel.app,https://football-world-cup-simulation-eq2j3ujk7.vercel.app"
 ).split(",")
 
 app.add_middleware(
