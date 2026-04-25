@@ -1,0 +1,24 @@
+# Python Virtual Environments
+venv/
+.venv/
+env/
+
+# Large Archives and Data Files
+*.zip
+archive.zip
+international-football-results.zip
+rankings.zip
+results.zip
+
+# Scratch and Extracted Data Folders
+/data/
+/model/
+/public/
+/rankings/
+/results/
+/international-football-results/
+/src/
+
+# OS/System files
+.DS_Store
+Thumbs.db

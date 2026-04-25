@@ -1,0 +1,8 @@
+pandas==2.2.3        # DataFrame loading, cleaning, joins, and feature prep for match data.
+numpy==2.2.1         # Numerical operations used by feature engineering and simulation math.
+scikit-learn==1.6.1  # Baseline ML utilities: preprocessing, splits, metrics, and classical models.
+xgboost==2.1.4       # Gradient-boosted trees for high-performance match outcome prediction.
+fastapi==0.115.6     # Backend API framework for exposing predictions and simulation endpoints.
+uvicorn==0.34.0      # ASGI server used to run the FastAPI backend in development/production.
+python-dotenv==1.0.1 # Environment variable loading from .env for config and secrets management.
+requests==2.32.3     # HTTP client for pulling external football/ranking data when needed.

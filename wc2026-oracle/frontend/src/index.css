@@ -1,0 +1,263 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #050508;
+  --bg-secondary: #0D0D14;
+  --accent: #FFFFFF;
+  --red: #C41E3A;
+  --text-primary: #F0F0F0;
+  --text-muted: #6B7280;
+  --glow-white: rgba(255, 255, 255, 0.15);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Bebas Neue', sans-serif;
+}
+
+/* Grass gradient background */
+.grass-bg {
+  background: linear-gradient(
+    135deg,
+    #0a1f0a 0%,
+    #0d2818 25%,
+    #0a1f0a 50%,
+    #0d2818 75%,
+    #0a1f0a 100%
+  );
+  background-size: 400% 400%;
+  animation: grassMove 15s ease infinite;
+}
+
+@keyframes grassMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Noise texture overlay */
+.noise-overlay::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+/* Gold glow text */
+.text-glow {
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.5),
+               0 0 60px rgba(255, 255, 255, 0.3);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+/* Button styles */
+.btn-minimal {
+  border: 2px solid var(--accent);
+  background: transparent;
+  color: var(--text-primary);
+  padding: 16px 48px;
+  border-radius: 50px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 24px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-minimal:hover {
+  background: var(--accent);
+  color: var(--bg-primary);
+  box-shadow: 0 0 40px rgba(255, 255, 255, 0.4);
+}
+
+/* Probability bar colors */
+.bar-minimal {
+  background: linear-gradient(90deg, #FFFFFF, #999999);
+}
+
+.bar-silver {
+  background: linear-gradient(90deg, #C0C0C0, #A8A8A8);
+}
+
+.bar-muted {
+  background: linear-gradient(90deg, #4B5563, #374151);
+}
+
+/* Home cinematic atmosphere */
+.stadium-atmosphere {
+  position: relative;
+  background:
+    radial-gradient(circle at 50% -15%, rgba(255, 255, 255, 0.22), transparent 46%),
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.06), transparent 38%),
+    linear-gradient(180deg, #000000 0%, #050505 55%, #000000 100%);
+}
+
+.stadium-atmosphere::before {
+  content: '';
+  position: absolute;
+  inset: -30%;
+  background: conic-gradient(
+    from 120deg at 50% 12%,
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.03),
+    transparent 32%,
+    rgba(255, 255, 255, 0.16),
+    transparent 62%,
+    rgba(255, 255, 255, 0.02)
+  );
+  filter: blur(20px);
+  opacity: 0.42;
+  animation: stadiumSweep 22s linear infinite;
+}
+
+@keyframes stadiumSweep {
+  from { transform: rotate(0deg) scale(1); }
+  to { transform: rotate(360deg) scale(1); }
+}
+
+.field-parallax {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(20, 56, 32, 0.96) 0%, rgba(13, 38, 24, 0.96) 62%, rgba(8, 26, 17, 0.99) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 -16px 60px rgba(0, 0, 0, 0.55),
+    inset 0 30px 50px rgba(255, 255, 255, 0.05);
+}
+
+.field-parallax::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.018) 0,
+    rgba(255, 255, 255, 0.018) 90px,
+    rgba(0, 0, 0, 0.07) 90px,
+    rgba(0, 0, 0, 0.07) 180px
+  );
+}
+
+.field-lines::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 8%;
+  width: 2px;
+  height: 78%;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.35),
+    rgba(255, 255, 255, 0)
+  );
+}
+
+.field-lines::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 26%;
+  width: min(22vw, 240px);
+  aspect-ratio: 1 / 1;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 255, 255, 0.24);
+}
+
+.particle-dot {
+  position: absolute;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.45);
+  animation-name: particleRise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes particleRise {
+  0% { transform: translateY(0px); opacity: 0; }
+  12% { opacity: 0.9; }
+  100% { transform: translateY(-105vh); opacity: 0; }
+}
+
+.oracle-cta {
+  box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+  animation: ctaPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes ctaPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(255, 255, 255, 0); }
+  50% { box-shadow: 0 0 30px rgba(255, 255, 255, 0.35); }
+}
+
+/* Results highlight effects */
+.winner-hero-lights {
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.2), transparent 42%),
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.08), transparent 32%);
+}
+
+.winner-name {
+  position: relative;
+  display: inline-block;
+}
+
+.winner-name::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 12%,
+    rgba(255, 255, 255, 0.5) 45%,
+    transparent 72%
+  );
+  transform: translateX(-150%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: winnerSweep 3.7s ease-in-out infinite;
+}
+
+@keyframes winnerSweep {
+  0% { transform: translateX(-150%); opacity: 0; }
+  18% { opacity: 0.7; }
+  42% { transform: translateX(150%); opacity: 0; }
+  100% { transform: translateX(150%); opacity: 0; }
+}
