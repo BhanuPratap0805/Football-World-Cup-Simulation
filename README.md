@@ -2,6 +2,19 @@
   <h1>🏆 WC2026 Oracle</h1>
   <p><strong>A Cinematic, Data-Driven World Cup 2026 Prediction Engine</strong></p>
   <p>10,000 parallel realities simulated using XGBoost, historical data, and Monte Carlo mathematics.</p>
+
+  <br/>
+
+  <a href="https://football-world-cup-simulation.vercel.app" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20Live%20Demo-football--world--cup--simulation.vercel.app-blueviolet?style=for-the-badge" alt="Live Demo" />
+  </a>
+
+  <br/><br/>
+
+  ![Tech](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)
+  ![Tech](https://img.shields.io/badge/FastAPI-Python-009688?style=flat-square&logo=fastapi)
+  ![Tech](https://img.shields.io/badge/XGBoost-ML-orange?style=flat-square)
+  ![Tech](https://img.shields.io/badge/Deployed-Vercel%20%2B%20Render-black?style=flat-square)
 </div>
 
 ---
@@ -48,8 +61,8 @@ Wrapped in a premium, cinematic UI, the Oracle presents raw data through an imme
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/wc2026-oracle.git
-cd wc2026-oracle
+git clone https://github.com/BhanuPratap0805/Football-World-Cup-Simulation.git
+cd Football-World-Cup-Simulation/wc2026-oracle
 ```
 
 ### 2. Run the Backend (FastAPI)
@@ -116,6 +129,17 @@ The Oracle does not rely on subjective opinions. It feeds entirely on historical
 │   └── package.json          # Node dependencies
 └── .gitignore                # Safely ignores node_modules, .venv, and raw data archives
 ```
+
+---
+
+## 🌐 Deployment
+
+| Service | URL |
+|---|---|
+| **Frontend (Vercel)** | [https://football-world-cup-simulation.vercel.app](https://football-world-cup-simulation.vercel.app) |
+| **Backend (Render)** | [https://football-world-cup-simulation.onrender.com](https://football-world-cup-simulation.onrender.com) |
+
+> **Note:** The Render backend is hosted on the free tier. The first request after inactivity may take ~30 seconds to wake up.
 
 ---
 
