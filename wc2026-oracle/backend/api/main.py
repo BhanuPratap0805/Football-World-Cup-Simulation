@@ -35,10 +35,21 @@ app = FastAPI(
 # =============================================================================
 
 import os
-cors_origins = os.getenv(
+cors_env = os.getenv(
     "CORS_ORIGINS",
-    "http://localhost:5173,http://localhost:3000,https://wc2026-oracle.vercel.app,https://football-world-cup-simulation.vercel.app,https://football-world-cup-simulation-eq2j3ujk7.vercel.app"
-).split(",")
+    "http://localhost:5173,http://localhost:3000"
+)
+cors_origins = [origin.strip() for origin in cors_env.split(",")]
+
+# Always ensure production URLs are allowed to prevent lockouts
+production_urls = [
+    "https://football-world-cup-simulation.vercel.app",
+    "https://football-world-cup-simulation-eq2j3ujk7.vercel.app"
+]
+
+for url in production_urls:
+    if url not in cors_origins:
+        cors_origins.append(url)
 
 app.add_middleware(
     CORSMiddleware,
