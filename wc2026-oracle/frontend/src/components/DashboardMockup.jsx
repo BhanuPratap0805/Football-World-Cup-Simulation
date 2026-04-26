@@ -16,16 +16,16 @@ export default function DashboardMockup() {
             <span className="text-xs font-display text-white/50 tracking-widest uppercase">Group Standings</span>
             <Trophy className="w-3 h-3 text-white/30" />
           </div>
-          <div className="flex gap-4 h-full">
-            <div className="flex-1 flex flex-col gap-2">
-              <span className="text-[10px] text-white/40 mb-1">GROUP A</span>
+          <div className="flex gap-2 md:gap-4 h-full min-h-0">
+            <div className="flex-1 flex flex-col gap-1 min-w-0">
+              <span className="text-[10px] text-white/40 mb-1 shrink-0">GROUP A</span>
               <TeamRow flag="🇲🇽" name="MEXICO" pts="9pt" />
               <TeamRow flag="🇰🇷" name="S. KOREA" pts="6pt" />
               <TeamRow flag="🇿🇦" name="S. AFRICA" pts="3pt" />
               <TeamRow flag="🇨🇿" name="CZECHIA" pts="0pt" />
             </div>
-            <div className="flex-1 flex flex-col gap-2">
-              <span className="text-[10px] text-white/40 mb-1">GROUP B</span>
+            <div className="flex-1 flex flex-col gap-1 min-w-0">
+              <span className="text-[10px] text-white/40 mb-1 shrink-0">GROUP B</span>
               <TeamRow flag="🇨🇦" name="CANADA" pts="7pt" />
               <TeamRow flag="🇨🇭" name="SWITZERLAND" pts="6pt" />
               <TeamRow flag="🇶🇦" name="QATAR" pts="2pt" />
@@ -155,30 +155,30 @@ export default function DashboardMockup() {
 
 function TeamRow({ flag, name, pts }) {
   return (
-    <div className="flex items-center justify-between text-xs bg-white/5 rounded px-2 py-1.5 border border-white/5">
-      <div className="flex items-center gap-2">
-        <span className="text-sm">{flag}</span>
-        <span className="font-display tracking-wider text-white/90">{name}</span>
+    <div className="flex items-center justify-between text-xs bg-white/5 rounded px-2 py-1 md:py-1.5 border border-white/5 min-w-0">
+      <div className="flex items-center gap-1.5 md:gap-2 min-w-0 flex-1">
+        <span className="text-sm shrink-0">{flag}</span>
+        <span className="font-display tracking-wider text-white/90 truncate">{name}</span>
       </div>
-      <span className="text-white/50">{pts}</span>
+      <span className="text-white/50 shrink-0 ml-2">{pts}</span>
     </div>
   )
 }
 
 function EloRow({ rank, flag, name, elo, trend }) {
   return (
-    <div className="flex items-center justify-between text-xs px-2 py-1">
-      <div className="flex items-center gap-3">
-        <span className="text-white/40 w-3">{rank}.</span>
-        <span className="text-sm">{flag}</span>
-        <span className="font-display tracking-wider text-white/90">{name}</span>
+    <div className="flex items-center justify-between text-xs px-2 py-1 min-w-0">
+      <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+        <span className="text-white/40 w-3 shrink-0">{rank}.</span>
+        <span className="text-sm shrink-0">{flag}</span>
+        <span className="font-display tracking-wider text-white/90 truncate">{name}</span>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 md:gap-3 shrink-0 ml-2">
         <span className="text-white/80 font-mono">{elo}</span>
         {trend === 'up' ? (
-          <TrendingUp className="w-3 h-3 text-green-400" />
+          <TrendingUp className="w-3 h-3 text-green-400 shrink-0" />
         ) : (
-          <TrendingUp className="w-3 h-3 text-red-400 rotate-180" />
+          <TrendingUp className="w-3 h-3 text-red-400 rotate-180 shrink-0" />
         )}
       </div>
     </div>

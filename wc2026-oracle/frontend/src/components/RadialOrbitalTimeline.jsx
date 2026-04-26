@@ -228,7 +228,7 @@ export default function RadialOrbitalTimeline({ timelineData }) {
                 </div>
 
                 {isExpanded && (
-                  <div className="absolute top-28 md:top-32 left-1/2 -translate-x-1/2 w-80 md:w-[400px] bg-black/80 backdrop-blur-xl border border-white/20 shadow-2xl shadow-white/5 overflow-visible rounded-2xl p-6">
+                  <div className="absolute top-28 md:top-32 left-1/2 -translate-x-1/2 w-72 md:w-[340px] bg-black/80 backdrop-blur-xl border border-white/20 shadow-2xl shadow-white/5 overflow-visible rounded-2xl p-5">
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-px h-4 bg-white/50"></div>
                     <div className="pb-3 border-b border-white/10 mb-3">
                       <div className="flex justify-between items-center mb-2">
@@ -247,11 +247,11 @@ export default function RadialOrbitalTimeline({ timelineData }) {
                           {item.date}
                         </span>
                       </div>
-                      <h3 className="text-lg font-display uppercase tracking-wider text-white">
+                      <h3 className="text-base font-display uppercase tracking-wider text-white">
                         {item.title}
                       </h3>
                     </div>
-                    <div className="text-sm md:text-base font-body leading-relaxed text-text-muted">
+                    <div className="text-xs md:text-sm font-body leading-relaxed text-text-muted">
                       <p>{item.content}</p>
 
                       <div className="mt-5 pt-4 border-t border-white/10">
