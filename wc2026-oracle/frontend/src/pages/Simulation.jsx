@@ -137,7 +137,7 @@ function RoundSection({ round, matches, accent }) {
 }
 
 export default function Simulation() {
-  const { data, loading, error } = useSimulation()
+  const { data, loading, error, progressMessage } = useSimulation()
   const [revealedByRound, setRevealedByRound] = useState({})
   const [currentRoundIdx, setCurrentRoundIdx] = useState(0)
   const [matchIdxInRound, setMatchIdxInRound] = useState(0)
@@ -221,8 +221,8 @@ export default function Simulation() {
     return () => clearTimeout(timer)
   }, [fullSimulation, currentRoundIdx, matchIdxInRound, skipReveal, isFinishing, data, navigate])
 
-  if (loading) return <LoadingOracle />
-  if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">Error loading simulation.</div>
+  if (loading) return <LoadingOracle progressMessage={progressMessage} />
+  if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>
 
   const allRevealed = fullSimulation?.flatMap(r => revealedByRound[r.id] || []) || []
   const champion = isFinishing ? allRevealed[allRevealed.length - 1]?.winner : null

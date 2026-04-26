@@ -6,42 +6,72 @@ export function useSimulation() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [awakening, setAwakening] = useState(false)
+  const [progressMessage, setProgressMessage] = useState("Igniting the Monte Carlo Engine...")
 
   useEffect(() => {
     let isMounted = true
     const controller = new AbortController()
 
     const fetchSimulation = async () => {
-      // Show "Oracle awakening" message after 5 seconds
-      const awakeningTimer = setTimeout(() => {
-        if (isMounted) {
-          setAwakening(true)
-        }
-      }, 5000)
+      let retryCount = 0;
 
-      try {
-        // Add cache-busting parameters to force fresh simulation every time
-        const timestamp = Date.now()
-        const response = await apiClient.get(`/simulate?force_fresh=true&_t=${timestamp}`, {
-          signal: controller.signal
-        })
+      const executeRequest = async () => {
+        // Show "Oracle awakening" message after 5 seconds
+        const awakeningTimer = setTimeout(() => {
+          if (isMounted) setAwakening(true)
+        }, 5000)
+
+        const timer10 = setTimeout(() => {
+          if (isMounted && retryCount === 0) setProgressMessage("Running 10,000 simulations...")
+        }, 10000)
         
-        clearTimeout(awakeningTimer)
+        const timer30 = setTimeout(() => {
+          if (isMounted && retryCount === 0) setProgressMessage("Crunching the final bracket...")
+        }, 30000)
         
-        if (isMounted) {
-          setData(response.data)
-          setLoading(false)
-          setError(null)
-        }
-      } catch (err) {
-        if (err.name === 'CanceledError') return; // Ignore aborted requests
-        clearTimeout(awakeningTimer)
-        
-        if (isMounted) {
-          setError(err.message || 'Failed to run simulation')
-          setLoading(false)
+        const timer60 = setTimeout(() => {
+          if (isMounted && retryCount === 0) setProgressMessage("Almost there, this one's taking longer than usual...")
+        }, 60000)
+
+        try {
+          // Add cache-busting parameters to force fresh simulation every time
+          const timestamp = Date.now()
+          const response = await apiClient.get(`/simulate?force_fresh=true&_t=${timestamp}`, {
+            signal: controller.signal,
+            timeout: 120000 // 120 seconds timeout
+          })
+          
+          if (isMounted) {
+            setData(response.data)
+            setLoading(false)
+            setError(null)
+          }
+        } catch (err) {
+          if (err.name === 'CanceledError') return; // Ignore aborted requests
+          
+          const isTimeoutOr502 = err.code === 'ECONNABORTED' || (err.response && err.response.status === 502);
+
+          if (isTimeoutOr502 && retryCount === 0 && isMounted) {
+            retryCount++;
+            setProgressMessage("Waking up the prediction engine, retrying...");
+            // Wait 5 seconds before retrying
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            if (isMounted) {
+              await executeRequest();
+            }
+          } else if (isMounted) {
+            setError(err.message || 'Error loading simulation')
+            setLoading(false)
+          }
+        } finally {
+          clearTimeout(awakeningTimer)
+          clearTimeout(timer10)
+          clearTimeout(timer30)
+          clearTimeout(timer60)
         }
       }
+
+      executeRequest()
     }
 
     fetchSimulation()
@@ -55,19 +85,22 @@ export function useSimulation() {
   // Optional: Add a manual refetch function for "Restart" button
   const refetch = async () => {
     setLoading(true)
+    setProgressMessage("Igniting the Monte Carlo Engine...")
     try {
       const timestamp = Date.now()
-      const response = await apiClient.get(`/simulate?force_fresh=true&_t=${timestamp}`)
+      const response = await apiClient.get(`/simulate?force_fresh=true&_t=${timestamp}`, {
+        timeout: 120000
+      })
       setData(response.data)
       setError(null)
     } catch (err) {
-      setError(err.message || 'Failed to refresh simulation')
+      setError(err.message || 'Error loading simulation')
     } finally {
       setLoading(false)
     }
   }
 
-  return { data, loading, error, awakening, refetch }
+  return { data, loading, error, awakening, progressMessage, refetch }
 }
 
 export default useSimulation

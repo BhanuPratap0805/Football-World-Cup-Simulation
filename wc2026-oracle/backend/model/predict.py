@@ -56,8 +56,8 @@ def _load_h2h_history():
 
     # 1. Determine "Team 1" (alphabetically first) and "Team 2" for each matchup
     # This creates a standardized symmetric key regardless of who was home/away.
-    df['team_1'] = np.where(df['home_team'] < df['away_team'], df['home_team'], df['away_team'])
-    df['team_2'] = np.where(df['home_team'] < df['away_team'], df['away_team'], df['home_team'])
+    df.loc[:, 'team_1'] = np.where(df['home_team'] < df['away_team'], df['home_team'], df['away_team'])
+    df.loc[:, 'team_2'] = np.where(df['home_team'] < df['away_team'], df['away_team'], df['home_team'])
     
     # 2. Calculate result from Team 1's perspective
     # First get home team's result: 2=Win, 1=Draw, 0=Loss
@@ -65,11 +65,11 @@ def _load_h2h_history():
                np.where(df['home_score'] < df['away_score'], 0, 1))
     
     # If home_team is team_1, use home_res. If not, use reverse (2-home_res)
-    df['t1_res'] = np.where(df['home_team'] == df['team_1'], home_res, 2 - home_res)
+    df.loc[:, 't1_res'] = np.where(df['home_team'] == df['team_1'], home_res, 2 - home_res)
     
     # 3. Build a dictionary of results grouped by the team-pair key
     # WHY: GroupBy + apply(list) is the most efficient way to bucket results in Pandas.
-    df['key'] = list(zip(df['team_1'], df['team_2']))
+    df.loc[:, 'key'] = list(zip(df['team_1'], df['team_2']))
     _h2h_history = df.groupby('key')['t1_res'].apply(list).to_dict()
 
 # Load h2h history at module import time
@@ -217,6 +217,94 @@ def predict_match(team_a: str, team_b: str,
         result_dict["team_b_win"] /= total
 
     return result_dict
+
+def batch_predict_matches(matchups: list, current_elos: dict = None, fifa_rankings: dict = None, recent_stats: dict = None) -> list:
+    """
+    Simulates a batch of matches to pre-populate the prediction cache.
+    Drastically reduces overhead by passing a single DataFrame to XGBoost.
+    matchups: list of tuples (team_a, team_b, is_knockout)
+    """
+    if not matchups:
+        return []
+
+    feature_rows = []
+    fifa_rankings = fifa_rankings or {}
+    recent_stats = recent_stats or {}
+
+    for team_a, team_b, is_knockout in matchups:
+        elo_a = get_elo(team_a) if current_elos is None else current_elos.get(team_a, 1500)
+        elo_b = get_elo(team_b) if current_elos is None else current_elos.get(team_b, 1500)
+        
+        rank_a = fifa_rankings.get(team_a, 104.5)
+        stats_a = recent_stats.get(team_a, {})
+        
+        rank_b = fifa_rankings.get(team_b, 104.5)
+        stats_b = recent_stats.get(team_b, {})
+        
+        elo_diff = elo_a - elo_b
+        fifa_rank_diff = rank_a - rank_b
+        avg_goals_scored_last5 = stats_a.get("goals_scored", 1.5) - stats_b.get("goals_scored", 1.5)
+        avg_goals_conceded_last5 = stats_a.get("goals_conceded", 1.2) - stats_b.get("goals_conceded", 1.2)
+        form_points = stats_a.get("form", 5) - stats_b.get("form", 5)
+        wc_experience = stats_a.get("wc_exp", 0) - stats_b.get("wc_exp", 0)
+        
+        is_neutral = 1
+        if team_a in ["Canada", "Mexico", "United States"] or team_b in ["Canada", "Mexico", "United States"]:
+            is_neutral = 0
+            
+        h2h_win_rate = compute_h2h_win_rate(team_a, team_b)
+        
+        feature_rows.append([
+            elo_diff,
+            fifa_rank_diff,
+            avg_goals_scored_last5,
+            avg_goals_conceded_last5,
+            form_points,
+            wc_experience,
+            is_neutral,
+            h2h_win_rate
+        ])
+        
+    FEATURE_COLS = [
+        'elo_diff', 'fifa_rank_diff', 'avg_goals_scored_last5',
+        'avg_goals_conceded_last5', 'form_points', 
+        'wc_experience', 'is_neutral', 'h2h_win_rate'
+    ]
+    df = pd.DataFrame(feature_rows, columns=FEATURE_COLS)
+    
+    probs_array = xgb_model.predict_proba(df)
+    
+    results = []
+    for i, (team_a, team_b, is_knockout) in enumerate(matchups):
+        probs = probs_array[i]
+        prob_b_win = float(probs[0])
+        prob_draw = float(probs[1])
+        prob_a_win = float(probs[2])
+        
+        result_dict = {
+            "team_a_win": prob_a_win,
+            "draw": prob_draw,
+            "team_b_win": prob_b_win
+        }
+        
+        if is_knockout:
+            result_dict["draw"] = 0.0
+            base_win_total = prob_a_win + prob_b_win
+            if base_win_total > 0:
+                added_to_a = prob_draw * (prob_a_win / base_win_total)
+                added_to_b = prob_draw * (prob_b_win / base_win_total)
+                result_dict["team_a_win"] += added_to_a
+                result_dict["team_b_win"] += added_to_b
+            else:
+                result_dict["team_a_win"] = 0.5
+                result_dict["team_b_win"] = 0.5
+            total = result_dict["team_a_win"] + result_dict["team_b_win"]
+            result_dict["team_a_win"] /= total
+            result_dict["team_b_win"] /= total
+            
+        results.append(result_dict)
+        
+    return results
 
 if __name__ == "__main__":
     # If the model file is missing, halt execution and tell the user.

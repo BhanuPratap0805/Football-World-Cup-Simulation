@@ -11,7 +11,7 @@ const MESSAGES = [
   "DECODING TOURNAMENT MOMENTUM..."
 ]
 
-export default function LoadingOracle() {
+export default function LoadingOracle({ progressMessage }) {
   const [index, setIndex] = useState(0)
 
   useEffect(() => {
@@ -93,6 +93,22 @@ export default function LoadingOracle() {
             className="w-1/2 h-full bg-gradient-to-r from-transparent via-white to-transparent"
           />
         </div>
+
+        {/* Live progress stage from hook */}
+        {progressMessage && (
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={progressMessage}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.4 }}
+              className="mt-6 text-white/40 text-xs tracking-widest uppercase text-center"
+            >
+              {progressMessage}
+            </motion.p>
+          </AnimatePresence>
+        )}
       </div>
 
       {/* Grid Pattern Background */}
