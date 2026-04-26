@@ -3,13 +3,13 @@ import { Activity, BarChart3, TrendingUp, Trophy } from 'lucide-react'
 
 export default function DashboardMockup() {
   return (
-    <div className="w-full aspect-video bg-black/80 rounded-xl border border-white/10 p-4 md:p-6 shadow-2xl backdrop-blur-xl flex flex-col gap-4 overflow-hidden relative font-body text-white">
+    <div className="w-full min-h-[400px] md:min-h-[450px] bg-black/80 rounded-xl border border-white/10 p-4 md:p-6 shadow-2xl backdrop-blur-xl flex flex-col gap-4 overflow-hidden relative font-body text-white">
       {/* Background glow effects inside the dashboard */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] pointer-events-none" />
 
       {/* Top Row */}
-      <div className="flex gap-4 h-1/2">
+      <div className="flex gap-2 md:gap-4 flex-1 min-h-[160px]">
         {/* Groups Panel */}
         <div className="w-1/2 bg-white/5 border border-white/10 rounded-lg p-4 flex flex-col relative z-10">
           <div className="flex justify-between items-center mb-4">
@@ -51,7 +51,7 @@ export default function DashboardMockup() {
       </div>
 
       {/* Bottom Row */}
-      <div className="flex gap-4 h-1/2">
+      <div className="flex gap-2 md:gap-4 flex-1 min-h-[160px]">
         {/* Statistics Bar Chart */}
         <div className="w-1/2 bg-white/5 border border-white/10 rounded-lg p-4 flex flex-col relative z-10">
           <div className="flex justify-between items-center mb-4">
